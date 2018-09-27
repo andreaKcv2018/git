@@ -2125,7 +2125,7 @@ int do_read_index(struct index_state *istate, const char *path, int must_exist)
 	size_t extension_offset = 0;
 #ifndef NO_PTHREADS
 	int nr_threads, cpus;
-	struct index_entry_offset_table *ieot = 0;
+	struct index_entry_offset_table *ieot = NULL;
 #endif
 
 	if (istate->initialized)
@@ -2754,7 +2754,7 @@ static int do_write_index(struct index_state *istate, struct tempfile *tempfile,
 			if (ieot_blocks < 1)
 				ieot_blocks = 1;
 			cpus = online_cpus();
-			if (ieot_blocks > cpus - 1)
+			if (cpus > 1 && ieot_blocks > cpus - 1)
 				ieot_blocks = cpus - 1;
 		} else {
 			ieot_blocks = nr;
