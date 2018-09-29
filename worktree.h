@@ -108,4 +108,18 @@ extern const char *worktree_git_path(const struct worktree *wt,
 				     const char *fmt, ...)
 	__attribute__((format (printf, 2, 3)));
 
+/*
+ * Return a refname suitable for access from the current ref store.
+ */
+void strbuf_worktree_ref(const struct worktree *wt,
+			 struct strbuf *sb,
+			 const char *refname);
+
+/*
+ * Return a refname suitable for access from the current ref
+ * store. The result may be destroyed at the next call.
+ */
+const char *worktree_ref(const struct worktree *wt,
+			 const char *refname);
+
 #endif
