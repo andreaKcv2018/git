@@ -149,6 +149,23 @@ static struct files_ref_store *files_downcast(struct ref_store *ref_store,
 	return refs;
 }
 
+static void files_reflog_path_other_worktrees(struct files_ref_store *refs,
+					      struct strbuf *sb,
+					      const char *refname)
+{
+	const char *real_ref;
+
+	if (!skip_prefix(refname, "worktrees/", &real_ref))
+		BUG("refname %s is not a other-worktree ref", refname);
+	real_ref = strchr(real_ref, '/');
+	if (!real_ref)
+		BUG("refname %s is not a other-worktree ref", refname);
+	real_ref++;
+
+	strbuf_addf(sb, "%s/%.*slogs/%s", refs->gitcommondir,
+		    (int)(real_ref - refname), refname, real_ref);
+}
+
 static void files_reflog_path(struct files_ref_store *refs,
 			      struct strbuf *sb,
 			      const char *refname)
@@ -158,6 +175,12 @@ static void files_reflog_path(struct files_ref_store *refs,
 	case REF_TYPE_PSEUDOREF:
 		strbuf_addf(sb, "%s/logs/%s", refs->gitdir, refname);
 		break;
+	case REF_TYPE_OTHER_PSEUDOREF:
+		return files_reflog_path_other_worktrees(refs, sb, refname);
+	case REF_TYPE_MAIN_PSEUDOREF:
+		if (!skip_prefix(refname, "main-worktree/", &refname))
+			BUG("ref %s is not a main pseudoref", refname);
+		/* passthru */
 	case REF_TYPE_NORMAL:
 		strbuf_addf(sb, "%s/logs/%s", refs->gitcommondir, refname);
 		break;
@@ -176,6 +199,11 @@ static void files_ref_path(struct files_ref_store *refs,
 	case REF_TYPE_PSEUDOREF:
 		strbuf_addf(sb, "%s/%s", refs->gitdir, refname);
 		break;
+	case REF_TYPE_MAIN_PSEUDOREF:
+		if (!skip_prefix(refname, "main-worktree/", &refname))
+			BUG("ref %s is not a main pseudoref", refname);
+		/* passthru */
+	case REF_TYPE_OTHER_PSEUDOREF:
 	case REF_TYPE_NORMAL:
 		strbuf_addf(sb, "%s/%s", refs->gitcommondir, refname);
 		break;
