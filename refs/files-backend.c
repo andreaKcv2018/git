@@ -180,7 +180,7 @@ static void files_reflog_path(struct files_ref_store *refs,
 	case REF_TYPE_MAIN_PSEUDOREF:
 		if (!skip_prefix(refname, "main-worktree/", &refname))
 			BUG("ref %s is not a main pseudoref", refname);
-		/* passthru */
+		/* fallthrough */
 	case REF_TYPE_NORMAL:
 		strbuf_addf(sb, "%s/logs/%s", refs->gitcommondir, refname);
 		break;
@@ -202,7 +202,7 @@ static void files_ref_path(struct files_ref_store *refs,
 	case REF_TYPE_MAIN_PSEUDOREF:
 		if (!skip_prefix(refname, "main-worktree/", &refname))
 			BUG("ref %s is not a main pseudoref", refname);
-		/* passthru */
+		/* fallthrough */
 	case REF_TYPE_OTHER_PSEUDOREF:
 	case REF_TYPE_NORMAL:
 		strbuf_addf(sb, "%s/%s", refs->gitcommondir, refname);
