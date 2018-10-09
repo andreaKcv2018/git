@@ -487,6 +487,28 @@ int submodule_uses_worktrees(const char *path)
 	return ret;
 }
 
+void strbuf_worktree_ref(const struct worktree *wt,
+			 struct strbuf *sb,
+			 const char *refname)
+{
+	if (wt && !wt->is_current) {
+		if (is_main_worktree(wt))
+			strbuf_addstr(sb, "main/");
+		else
+			strbuf_addf(sb, "worktrees/%s/", wt->id);
+	}
+	strbuf_addstr(sb, refname);
+}
+
+const char *worktree_ref(const struct worktree *wt, const char *refname)
+{
+	static struct strbuf sb = STRBUF_INIT;
+
+	strbuf_reset(&sb);
+	strbuf_worktree_ref(wt, &sb, refname);
+	return sb.buf;
+}
+
 int other_head_refs(each_ref_fn fn, void *cb_data)
 {
 	struct worktree **worktrees, **p;
@@ -495,13 +517,17 @@ int other_head_refs(each_ref_fn fn, void *cb_data)
 	worktrees = get_worktrees(0);
 	for (p = worktrees; *p; p++) {
 		struct worktree *wt = *p;
-		struct ref_store *refs;
+		struct object_id oid;
+		int flag;
 
 		if (wt->is_current)
 			continue;
 
-		refs = get_worktree_ref_store(wt);
-		ret = refs_head_ref(refs, fn, cb_data);
+		if (!refs_read_ref_full(get_main_ref_store(the_repository),
+					worktree_ref(wt, "HEAD"),
+					RESOLVE_REF_READING,
+					&oid, &flag))
+			ret = fn(worktree_ref(wt, "HEAD"), &oid, flag, cb_data);
 		if (ret)
 			break;
 	}
