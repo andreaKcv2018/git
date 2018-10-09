@@ -508,6 +508,7 @@ static int run_status(FILE *fp, const char *index_file, const char *prefix, int 
 
 	wt_status_collect(s);
 	wt_status_print(s);
+	wt_status_collect_free_buffers(s);
 
 	return s->committable;
 }
@@ -1397,6 +1398,8 @@ int cmd_status(int argc, const char **argv, const char *prefix)
 		s.prefix = prefix;
 
 	wt_status_print(&s);
+	wt_status_collect_free_buffers(&s);
+
 	return 0;
 }
 
